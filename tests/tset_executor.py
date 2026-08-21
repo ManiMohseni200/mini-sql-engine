@@ -138,3 +138,11 @@ def test_unknown_column():
         execute_query(
             "SELECT salary FROM students"
         )
+
+def test_unknown_table():
+
+    with pytest.raises(UnknownTableError):
+
+        execute_query(
+            "SELECT name FROM employees"
+        )
