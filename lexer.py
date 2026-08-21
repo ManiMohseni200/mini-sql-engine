@@ -1,14 +1,21 @@
 from errors import LexerError
 
+
 class Token:
+
     def __init__(self, token_type, value):
         self.type = token_type
         self.value = value
 
     def __repr__(self):
-        return f"Token(type={self.type}, value={self.value})"
+        return (
+            f"Token(type={self.type}, "
+            f"value={self.value})"
+        )
+
 
 class Lexer:
+
     KEYWORDS = {
         "SELECT": "SELECT",
         "FROM": "FROM",
@@ -20,6 +27,10 @@ class Lexer:
         "AND": "AND",
         "OR": "OR",
         "LIMIT": "LIMIT",
+
+        "INSERT": "INSERT",
+        "INTO": "INTO",
+        "VALUES": "VALUES",
     }
 
     OPERATORS = {
@@ -32,92 +43,250 @@ class Lexer:
     }
 
     def tokenize(self, query):
+
         tokens = []
+
         i = 0
 
         while i < len(query):
+
             char = query[i]
+
+            # -------------------------
+            # Whitespace
+            # -------------------------
+
             if char.isspace():
+
                 i += 1
+
                 continue
 
+            # -------------------------
+            # Identifiers / Keywords
+            # -------------------------
+
             if char.isalpha() or char == "_":
+
                 start = i
 
                 while i < len(query) and (
-                    query[i].isalnum() or query[i] == "_"
+                    query[i].isalnum()
+                    or query[i] == "_"
                 ):
+
                     i += 1
+
                 word = query[start:i]
+
                 upper_word = word.upper()
 
                 if upper_word in self.KEYWORDS:
-                    token_type = self.KEYWORDS[upper_word]
+
+                    token_type = (
+                        self.KEYWORDS[upper_word]
+                    )
+
                 else:
+
                     token_type = "IDENTIFIER"
-                
-                tokens.append(Token(token_type, word))
+
+                tokens.append(
+                    Token(
+                        token_type,
+                        word
+                    )
+                )
+
                 continue
 
+            # -------------------------
+            # Numbers
+            # -------------------------
+
             if char.isdigit():
+
                 start = i
+
                 has_decimal = False
+
                 while i < len(query):
+
                     current = query[i]
+
                     if current.isdigit():
+
                         i += 1
-                    elif current == "." and not has_decimal:
+
+                    elif (
+                        current == "."
+                        and not has_decimal
+                    ):
+
                         has_decimal = True
+
                         i += 1
 
                     else:
+
                         break
-                
+
                 number_text = query[start:i]
 
                 if has_decimal:
-                    value = float(number_text)
+
+                    value = float(
+                        number_text
+                    )
+
                 else:
-                    value = int(number_text)
-                
-                tokens.append(Token("NUMBER", value))
+
+                    value = int(
+                        number_text
+                    )
+
+                tokens.append(
+                    Token(
+                        "NUMBER",
+                        value
+                    )
+                )
+
                 continue
 
+            # -------------------------
+            # Operators
+            # -------------------------
+
             if char in "><=!":
+
                 operator = char
 
                 if i + 1 < len(query):
-                    two_char_operator = query[i: i + 2]
-                    if two_char_operator in self.OPERATORS:
-                        operator = two_char_operator
-                        i += 2
-                    else:
-                        if char == "!":
-                            raise LexerError(
-                                f"Invalid Operator '{char}' at position {i}"
-                            )
-                    i += 1
-                else:
-                    if char == "!":
-                        raise LexerError(
-                            f"Invalid Operator '{char}' at position {i}"
+
+                    two_char_operator = (
+                        query[i:i + 2]
+                    )
+
+                    if (
+                        two_char_operator
+                        in self.OPERATORS
+                    ):
+
+                        operator = (
+                            two_char_operator
                         )
+
+                        i += 2
+
+                    else:
+
+                        if char == "!":
+
+                            raise LexerError(
+                                f"Invalid Operator "
+                                f"'{char}' "
+                                f"at position {i}"
+                            )
+
+                        i += 1
+
+                else:
+
+                    if char == "!":
+
+                        raise LexerError(
+                            f"Invalid Operator "
+                            f"'{char}' "
+                            f"at position {i}"
+                        )
+
                     i += 1
-                token_type = self.OPERATORS[operator]
-                tokens.append(Token(token_type, operator))
+
+                token_type = (
+                    self.OPERATORS[operator]
+                )
+
+                tokens.append(
+                    Token(
+                        token_type,
+                        operator
+                    )
+                )
+
                 continue
+
+            # -------------------------
+            # Comma
+            # -------------------------
+
             if char == ",":
-                tokens.append(Token("COMMA", ","))
+
+                tokens.append(
+                    Token(
+                        "COMMA",
+                        ","
+                    )
+                )
+
                 i += 1
+
                 continue
+
+            # -------------------------
+            # Asterisk
+            # -------------------------
 
             if char == "*":
-                tokens.append(Token("ASTERISK", "*"))
+
+                tokens.append(
+                    Token(
+                        "ASTERISK",
+                        "*"
+                    )
+                )
+
                 i += 1
+
                 continue
 
+            # -------------------------
+            # Parentheses
+            # -------------------------
+
+            if char == "(":
+
+                tokens.append(
+                    Token(
+                        "LPAREN",
+                        "("
+                    )
+                )
+
+                i += 1
+
+                continue
+
+            if char == ")":
+
+                tokens.append(
+                    Token(
+                        "RPAREN",
+                        ")"
+                    )
+                )
+
+                i += 1
+
+                continue
+
+            # -------------------------
+            # Unknown character
+            # -------------------------
+
             raise LexerError(
-                f"Unexpected character '{char}' at position {i}"
+                f"Unexpected character "
+                f"'{char}' at position {i}"
             )
 
         return tokens

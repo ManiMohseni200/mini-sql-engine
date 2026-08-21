@@ -75,3 +75,18 @@ class SelectQuery:
             f"    limit={self.limit}\n"
             f")"
         )
+
+
+class InsertQuery:
+
+    def __init__(self, table, values):
+        self.table = table
+        self.values = values
+
+    def __repr__(self):
+        return (
+            f"InsertQuery("
+            f"table={self.table}, "
+            f"values={self.values}"
+            f")"
+        )

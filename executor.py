@@ -1,5 +1,7 @@
 from table import Table
+
 from conditions import ConditionEvaluator
+
 from errors import (
     UnknownTableError,
     UnknownColumnError
@@ -14,20 +16,51 @@ class Executor:
             ConditionEvaluator()
         )
 
+    # ==================================================
+    # Main Executor
+    # ==================================================
+
     def execute(self, query, table):
 
         if query.table != "students":
 
             raise UnknownTableError(
-                f"Table '{query.table}' does not exist."
+                f"Table '{query.table}' "
+                f"does not exist."
             )
 
-        return self.execute_select(
-            query,
-            table
+        query_type = (
+            query.__class__.__name__
         )
 
-    def execute_select(self, query, table):
+        if query_type == "SelectQuery":
+
+            return self.execute_select(
+                query,
+                table
+            )
+
+        if query_type == "InsertQuery":
+
+            return self.execute_insert(
+                query,
+                table
+            )
+
+        raise ValueError(
+            f"Unsupported query type: "
+            f"{query_type}"
+        )
+
+    # ==================================================
+    # SELECT
+    # ==================================================
+
+    def execute_select(
+        self,
+        query,
+        table
+    ):
 
         # -------------------------
         # SELECT
@@ -35,20 +68,27 @@ class Executor:
 
         if query.columns == ["*"]:
 
-            selected_columns = table.columns
+            selected_columns = (
+                table.columns
+            )
 
         else:
 
-            selected_columns = query.columns
+            selected_columns = (
+                query.columns
+            )
 
-        # Validate selected columns
+        # -------------------------
+        # Validate columns
+        # -------------------------
 
         for column in selected_columns:
 
             if column not in table.columns:
 
                 raise UnknownColumnError(
-                    f"Column '{column}' does not exist."
+                    f"Column '{column}' "
+                    f"does not exist."
                 )
 
         # -------------------------
@@ -70,6 +110,7 @@ class Executor:
                 )
 
                 if not matches:
+
                     continue
 
             filtered_rows.append(row)
@@ -80,9 +121,14 @@ class Executor:
 
         if query.order_by is not None:
 
-            order_column = query.order_by.column
+            order_column = (
+                query.order_by.column
+            )
 
-            if order_column not in table.columns:
+            if (
+                order_column
+                not in table.columns
+            ):
 
                 raise UnknownColumnError(
                     f"Column '{order_column}' "
@@ -90,12 +136,18 @@ class Executor:
                 )
 
             order_index = (
-                table.columns.index(order_column)
+                table.columns.index(
+                    order_column
+                )
             )
 
             filtered_rows.sort(
-                key=lambda row: row[order_index],
-                reverse=query.order_by.descending
+                key=lambda row: (
+                    row[order_index]
+                ),
+                reverse=(
+                    query.order_by.descending
+                )
             )
 
         # -------------------------
@@ -105,7 +157,9 @@ class Executor:
         if query.limit is not None:
 
             filtered_rows = (
-                filtered_rows[:query.limit]
+                filtered_rows[
+                    :query.limit
+                ]
             )
 
         # -------------------------
@@ -126,9 +180,39 @@ class Executor:
                 for index in column_indexes
             ]
 
-            result_rows.append(result_row)
+            result_rows.append(
+                result_row
+            )
 
         return Table(
             columns=selected_columns,
             rows=result_rows
         )
+
+    # ==================================================
+    # INSERT
+    # ==================================================
+
+    def execute_insert(
+        self,
+        query,
+        table
+    ):
+
+        if (
+            len(query.values)
+            != len(table.columns)
+        ):
+
+            raise ValueError(
+                f"Expected "
+                f"{len(table.columns)} "
+                f"values, but got "
+                f"{len(query.values)}."
+            )
+
+        table.insert_row(
+            query.values
+        )
+
+        return table
