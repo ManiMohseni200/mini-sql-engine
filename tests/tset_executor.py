@@ -146,3 +146,116 @@ def test_unknown_table():
         execute_query(
             "SELECT name FROM employees"
         )
+
+def test_select_multiple_columns():
+
+    result = execute_query(
+        "SELECT name, age FROM students"
+    )
+
+    assert result.columns == [
+        "name",
+        "age"
+    ]
+
+    assert result.rows[0] == [
+        "Ali",
+        22
+    ]
+
+
+def test_select_all():
+
+    result = execute_query(
+        "SELECT * FROM students"
+    )
+
+    assert result.columns == [
+        "id",
+        "name",
+        "age",
+        "gpa"
+    ]
+
+    assert result.rows == [
+        [1, "Ali", 22, 17.5],
+        [2, "Sara", 19, 18.2],
+        [3, "John", 24, 15.8],
+        [4, "Mary", 21, 19.1],
+        [5, "David", 20, 16.4],
+    ]
+
+
+def test_where_and():
+
+    result = execute_query(
+        "SELECT name "
+        "FROM students "
+        "WHERE age > 20 AND gpa > 17"
+    )
+
+    assert result.rows == [
+        ["Ali"],
+        ["Mary"],
+    ]
+
+
+def test_where_or():
+
+    result = execute_query(
+        "SELECT name "
+        "FROM students "
+        "WHERE age > 23 OR gpa > 18"
+    )
+
+    assert result.rows == [
+        ["Sara"],
+        ["John"],
+        ["Mary"],
+    ]
+
+
+def test_limit():
+
+    result = execute_query(
+        "SELECT name "
+        "FROM students "
+        "LIMIT 3"
+    )
+
+    assert result.rows == [
+        ["Ali"],
+        ["Sara"],
+        ["John"],
+    ]
+
+
+def test_order_by_desc_limit():
+
+    result = execute_query(
+        "SELECT name "
+        "FROM students "
+        "ORDER BY gpa DESC "
+        "LIMIT 2"
+    )
+
+    assert result.rows == [
+        ["Mary"],
+        ["Sara"],
+    ]
+
+
+def test_combined_query():
+
+    result = execute_query(
+        "SELECT name, age, gpa "
+        "FROM students "
+        "WHERE age > 20 AND gpa > 16 "
+        "ORDER BY gpa DESC "
+        "LIMIT 2"
+    )
+
+    assert result.rows == [
+        ["Mary", 21, 19.1],
+        ["Ali", 22, 17.5],
+    ]

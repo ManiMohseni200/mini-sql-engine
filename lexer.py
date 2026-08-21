@@ -17,6 +17,9 @@ class Lexer:
         "BY": "BY",
         "ASC": "ASC",
         "DESC": "DESC",
+        "AND": "AND",
+        "OR": "OR",
+        "LIMIT": "LIMIT",
     }
 
     OPERATORS = {
